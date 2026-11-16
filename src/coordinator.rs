@@ -1,8 +1,8 @@
 use std::sync::{Condvar, Mutex};
 use std::time::{Duration, Instant};
 
-use crate::{FailureCode, ResourceHandle, SyncError};
 use crate::timeline::Timeline;
+use crate::{FailureCode, ResourceHandle, SyncError};
 
 #[derive(Debug)]
 struct Slot {
@@ -33,8 +33,7 @@ impl Registry {
             return Ok(ResourceHandle::new(index, slot.generation));
         }
 
-        let index = u32::try_from(self.slots.len())
-            .map_err(|_| SyncError::CapacityExhausted)?;
+        let index = u32::try_from(self.slots.len()).map_err(|_| SyncError::CapacityExhausted)?;
 
         self.slots.push(Slot {
             generation: 1,
@@ -77,10 +76,7 @@ impl Registry {
             .get_mut(handle.index() as usize)
             .ok_or(SyncError::InvalidHandle)?;
 
-        if slot.generation != handle.generation()
-            || slot.retired
-            || slot.timeline.is_none()
-        {
+        if slot.generation != handle.generation() || slot.retired || slot.timeline.is_none() {
             return Err(SyncError::InvalidHandle);
         }
 
@@ -175,11 +171,7 @@ impl SynchronizationCoordinator {
     }
 
     /// Places a timeline into a terminal failure state and wakes its waiters.
-    pub fn fail(
-        &self,
-        handle: ResourceHandle,
-        code: FailureCode,
-    ) -> Result<(), SyncError> {
+    pub fn fail(&self, handle: ResourceHandle, code: FailureCode) -> Result<(), SyncError> {
         let mut registry = self.registry.lock().map_err(|_| SyncError::LockPoisoned)?;
         registry.get_mut(handle)?.fail(code);
         drop(registry);
